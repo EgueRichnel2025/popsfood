@@ -1,13 +1,16 @@
 """
-Script de peuplement de la base avec des données de démonstration réalistes
-pour Pop's FOOD BENIN. Lancer avec : python -m app.seed
+Script de peuplement de la base avec les VRAIES données du menu Pop's FOOD BENIN
+(Calavi - Zoca), transmises par le restaurant.
+
+Lancer avec : python -m app.seed
+Pour re-générer après une première exécution : supprimez popsfood.db puis relancez.
 """
 from datetime import datetime, timedelta
 
 from .database import SessionLocal, Base, engine
 from .models import (
     Admin, Category, Product, OptionGroup, OptionChoice,
-    DeliveryZone, Promotion, RestaurantSettings, Review,
+    DeliveryZone, RestaurantSettings, Review,
 )
 from .auth import hash_password
 
@@ -20,14 +23,16 @@ IMG_PLACEHOLDER = "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?
 def slugify(text: str) -> str:
     return (
         text.lower()
-        .replace("é", "e").replace("è", "e").replace("à", "a")
-        .replace("'", "").replace(" ", "-")
+        .replace("é", "e").replace("è", "e").replace("ê", "e").replace("à", "a")
+        .replace("'", "").replace("œ", "oe").replace("/", "-")
+        .replace(" ", "-")
     )
 
 
 def run():
     if db.query(Admin).first():
         print("La base contient déjà des données. Seed annulé (pour éviter les doublons).")
+        print("Pour re-seed : supprimez popsfood.db puis relancez cette commande.")
         return
 
     # ---- Admin ----
@@ -39,14 +44,14 @@ def run():
     )
     db.add(admin)
 
-    # ---- Settings ----
+    # ---- Settings (infos réelles transmises par le restaurant) ----
     db.add(RestaurantSettings(
         id="settings",
         restaurant_name="Pop's FOOD BENIN",
-        city="Calavi, Bénin",
-        phone="+229 01 69 12 19 11",
-        whatsapp="+229 01 69 12 19 11",
-        opening_hours="Tous les jours, 10h00 - 22h30",
+        city="Calavi - Zoca, Bénin",
+        phone="69 12 19 11",
+        whatsapp="69 12 19 11",
+        opening_hours="Tous les jours de 9h à 19h, sauf dimanche",
         payment_number="01-69-12-19-11",
         payment_beneficiary="DOSSOU-YOVO Annette",
         payment_instructions="Veuillez envoyer la capture après dépôt ainsi que le numéro à joindre.",
@@ -56,122 +61,178 @@ def run():
         instagram_url=None,
     ))
 
-    # ---- Categories ----
-    cat_fastfood = Category(name="Fast-food", slug="fast-food", display_order=1,
-                             description="Nos classiques gourmands : shawarma, burgers et plus.")
-    cat_frites = Category(name="Frites & accompagnements", slug="frites", display_order=2,
-                           description="Bols de frites personnalisables.")
-    cat_boissons = Category(name="Boissons", slug="boissons", display_order=3,
-                             description="Pour accompagner votre repas.")
-    cat_pizza = Category(name="Pizzas", slug="pizzas", display_order=4,
-                          description="Pizzas généreuses, cuites avec amour.")
-    for c in (cat_fastfood, cat_frites, cat_boissons, cat_pizza):
+    # ---- Catégories ----
+    cat_tacos = Category(name="Tacos", slug="tacos", display_order=1)
+    cat_chawarma = Category(name="Chawarma", slug="chawarma", display_order=2,
+                             description="Chawarmas généreux, garnis à la demande.")
+    cat_packs = Category(name="Packs", slug="packs", display_order=3,
+                          description="Nos formules complètes à prix avantageux.")
+    cat_burgers = Category(name="Burgers & Paninis", slug="burgers-paninis", display_order=4)
+    cat_snacks = Category(name="Snacks & Grignotage", slug="snacks", display_order=5,
+                           description="Mini pizzas, pastels et beignets fourrés.")
+    cat_crepes = Category(name="Crêpes", slug="crepes", display_order=6)
+    cat_pizza = Category(name="Pizzas", slug="pizzas", display_order=7)
+    cat_frites = Category(name="Bol de frites", slug="bol-de-frites", display_order=8)
+    cat_salades = Category(name="Salades", slug="salades", display_order=9)
+    cat_boissons = Category(name="Boissons & Jus", slug="boissons", display_order=10)
+
+    categories = [
+        cat_tacos, cat_chawarma, cat_packs, cat_burgers, cat_snacks,
+        cat_crepes, cat_pizza, cat_frites, cat_salades, cat_boissons,
+    ]
+    for c in categories:
         db.add(c)
     db.flush()
 
-    # ---- Fast-food products ----
-    fastfood_items = [
-        ("Shawarma Poulet", "Galette croustillante garnie de poulet mariné, crudités et sauce maison.", 1500),
-        ("Burger Pop's Classic", "Pain moelleux, steak haché, cheddar, salade, tomate, sauce burger.", 2000),
-        ("Hamburger Simple", "Le hamburger généreux à la sauce Pop's FOOD.", 1500),
-        ("Beignets Fourrés", "Beignets moelleux fourrés, servis chauds.", 500),
-        ("Pastels Fourrés au Fromage", "Pastels croustillants garnis de fromage fondant.", 700),
-        ("Crêpe Revisitée au Fromage", "Crêpe salée revisitée, garnie de fromage.", 1000),
-    ]
-    products_by_slug = {}
-    for name, desc, price in fastfood_items:
+    def add_product(name, desc, price, category, featured=False, compare_at=None):
         p = Product(
             name=name, slug=slugify(name), description=desc, price=price,
-            image_url=IMG_PLACEHOLDER, category_id=cat_fastfood.id,
-            is_available=True, is_featured=(name in ("Shawarma Poulet", "Burger Pop's Classic")),
+            compare_at_price=compare_at, image_url=IMG_PLACEHOLDER,
+            category_id=category.id, is_available=True, is_featured=featured,
         )
         db.add(p)
-        products_by_slug[p.slug] = p
-    db.flush()
-
-    # Sauce options for shawarma/burger
-    for slug in ("shawarma-poulet", "burger-pops-classic", "hamburger-simple"):
-        p = products_by_slug[slug]
-        sauce_group = OptionGroup(product_id=p.id, name="Sauce", is_required=True, allow_multiple=False, max_choices=1, display_order=1)
-        db.add(sauce_group)
         db.flush()
-        for label, extra in [("Sauce piquante", 0), ("Sauce douce", 0), ("Sauce fromagère", 200)]:
-            db.add(OptionChoice(group_id=sauce_group.id, label=label, extra_price=extra))
-        supp_group = OptionGroup(product_id=p.id, name="Supplément", is_required=False, allow_multiple=True, max_choices=3, display_order=2)
-        db.add(supp_group)
+        return p
+
+    def add_option_group(product, name, is_required=False, allow_multiple=False, max_choices=1, order=1):
+        g = OptionGroup(
+            product_id=product.id, name=name, is_required=is_required,
+            allow_multiple=allow_multiple, max_choices=max_choices, display_order=order,
+        )
+        db.add(g)
         db.flush()
-        for label, extra in [("Fromage supplémentaire", 300), ("Œuf", 200), ("Frites en accompagnement", 500)]:
-            db.add(OptionChoice(group_id=supp_group.id, label=label, extra_price=extra))
+        return g
 
-    # ---- Pizza ----
-    p_pizza = Product(
-        name="Pizza Pop's Spéciale", slug="pizza-pops-speciale",
-        description="Pâte maison, sauce tomate, mozzarella, garniture au choix.",
-        price=3000, image_url=IMG_PLACEHOLDER, category_id=cat_pizza.id, is_featured=True,
+    def add_choice(group, label, extra_price=0):
+        db.add(OptionChoice(group_id=group.id, label=label, extra_price=extra_price))
+
+    # ============ TACOS ============
+    t1 = add_product("Tacos Bœuf / Poulet", "Tacos généreux garni de viande, frites et sauce fromagère.", 4000, cat_tacos, featured=True)
+    viande_g = add_option_group(t1, "Viande", is_required=True)
+    add_choice(viande_g, "Bœuf")
+    add_choice(viande_g, "Poulet")
+
+    t2 = add_product("Tacos Bœuf / Poulet Fromage", "Le grand classique, garni de fromage fondant en plus.", 5000, cat_tacos)
+    viande_g2 = add_option_group(t2, "Viande", is_required=True)
+    add_choice(viande_g2, "Bœuf")
+    add_choice(viande_g2, "Poulet")
+
+    add_product("Tacos Pommes Viande", "Tacos garni de pommes de terre sautées et de viande.", 3500, cat_tacos)
+    add_product("Tacos Viande Pommes Fromage", "Tacos garni de viande, pommes de terre et fromage fondant.", 4500, cat_tacos)
+
+    # ============ CHAWARMA ============
+    def chawarma_supplements(product):
+        g = add_option_group(product, "Supplément", is_required=False, allow_multiple=True, max_choices=4, order=2)
+        add_choice(g, "Sauce", 500)
+        add_choice(g, "Fromage", 1000)
+        add_choice(g, "Jambon", 1000)
+        add_choice(g, "Viande / Poulet", 1000)
+
+    add_product("Chawarma Sans Viande", "Chawarma végétarien garni de crudités et sauce maison.", 1500, cat_chawarma)
+    c_sv = add_product("Chawarma Sans Viande Fromage", "Chawarma végétarien garni de fromage fondant.", 2500, cat_chawarma)
+    chawarma_supplements(c_sv)
+
+    c_boeuf = add_product("Chawarma Bœuf", "Galette garnie de bœuf mariné, crudités et sauce maison.", 2500, cat_chawarma, featured=True)
+    taille_boeuf = add_option_group(c_boeuf, "Taille", is_required=True, order=1)
+    add_choice(taille_boeuf, "Normal", 0)
+    add_choice(taille_boeuf, "Grand", 500)
+    chawarma_supplements(c_boeuf)
+
+    c_poulet = add_product("Chawarma Poulet", "Galette garnie de poulet mariné, crudités et sauce maison.", 2500, cat_chawarma, featured=True)
+    taille_poulet = add_option_group(c_poulet, "Taille", is_required=True, order=1)
+    add_choice(taille_poulet, "Normal", 0)
+    add_choice(taille_poulet, "Grand", 500)
+    chawarma_supplements(c_poulet)
+
+    c_boeuf_from = add_product("Chawarma Bœuf Fromage", "Chawarma bœuf garni de fromage fondant.", 3500, cat_chawarma)
+    chawarma_supplements(c_boeuf_from)
+
+    c_poulet_from = add_product("Chawarma Poulet Fromage", "Chawarma poulet garni de fromage fondant.", 4000, cat_chawarma)
+    chawarma_supplements(c_poulet_from)
+
+    # ============ PACKS ============
+    add_product(
+        "Pack 4500", "1 Chawarma bœuf + 1 portion de frites + 1 Bissap.", 4500, cat_packs, featured=True,
     )
-    db.add(p_pizza)
-    db.flush()
-    taille_group = OptionGroup(product_id=p_pizza.id, name="Taille", is_required=True, allow_multiple=False, max_choices=1, display_order=1)
-    db.add(taille_group)
-    db.flush()
-    db.add(OptionChoice(group_id=taille_group.id, label="Petite (25cm)", extra_price=0))
-    db.add(OptionChoice(group_id=taille_group.id, label="Moyenne (30cm)", extra_price=1000))
-    db.add(OptionChoice(group_id=taille_group.id, label="Grande (35cm)", extra_price=2000))
-
-    # ---- Frites (bol personnalisable) ----
-    p_frites = Product(
-        name="Bol de Frites Personnalisé", slug="bol-de-frites-personnalise",
-        description="Choisissez votre fromage, votre sauce et vos suppléments préférés.",
-        price=1000, image_url=IMG_PLACEHOLDER, category_id=cat_frites.id, is_featured=True,
+    add_product(
+        "Pack 5500", "1 Chawarma bœuf + 1 portion de frites + 1 salade verte + 1 Ice Coffee.", 5500, cat_packs,
     )
-    db.add(p_frites)
-    db.flush()
+    add_product(
+        "Pack 10 000", "4 minis chawarma + 4 minis pastels + 4 minis pizzas + 1 portion de frites. Idéal pour partager.", 10000, cat_packs,
+    )
+    add_product(
+        "Pack Pop's 1", "1 Burger + 1 Chawarma + 1 Ice Coffee.", 5000, cat_packs, featured=True,
+    )
+    # Prix non communiqué par le restaurant pour ce pack — valeur provisoire, à confirmer/modifier via /admin/produits.
+    add_product(
+        "Pack Pop's 2", "1 Panini + 1 Burger + 1 Menthe au Lait. (Prix à confirmer)", 5500, cat_packs,
+    )
 
-    fromage_group = OptionGroup(product_id=p_frites.id, name="Fromage", is_required=False, allow_multiple=False, max_choices=1, display_order=1)
-    db.add(fromage_group)
-    db.flush()
-    db.add(OptionChoice(group_id=fromage_group.id, label="Fromage lait de vache", extra_price=500))
-    db.add(OptionChoice(group_id=fromage_group.id, label="Fromage fondant", extra_price=400))
-    db.add(OptionChoice(group_id=fromage_group.id, label="Sans fromage", extra_price=0))
+    # ============ BURGERS & PANINIS ============
+    add_product("Panini Viande Hachée Fromage", "Panini croustillant garni de viande hachée et fromage fondant.", 2000, cat_burgers)
+    add_product("Panini Brochette", "Panini garni de brochettes de viande grillée.", 3500, cat_burgers)
+    add_product("Burger", "Pain moelleux, steak haché, crudités, sauce burger.", 3000, cat_burgers, featured=True)
+    add_product("Cheeseburger", "Burger garni de cheddar fondant.", 4000, cat_burgers)
+    add_product("Double Cheeseburger", "Double steak, double fromage, pour les grosses faims.", 5000, cat_burgers)
 
-    sauce_frites_group = OptionGroup(product_id=p_frites.id, name="Sauce", is_required=True, allow_multiple=False, max_choices=1, display_order=2)
-    db.add(sauce_frites_group)
-    db.flush()
-    for label in ("Sauce piquante", "Sauce ketchup", "Sauce mayo", "Sauce fromagère"):
-        db.add(OptionChoice(group_id=sauce_frites_group.id, label=label, extra_price=0))
+    # ============ SNACKS & GRIGNOTAGE ============
+    add_product("Mini Pizza", "Mini pizzas généreuses. Commande minimum : 10 pièces.", 300, cat_snacks)
+    add_product("Mini Pastel", "Mini pastels croustillants. Commande minimum : 10 pièces.", 300, cat_snacks)
+    add_product("Pastel", "Pastels croustillants faits maison. Commande minimum : 3 pièces.", 1000, cat_snacks)
+    add_product("Beignet Fourré", "Pack de 2 beignets moelleux fourrés, servis chauds.", 3000, cat_snacks)
 
-    supp_frites_group = OptionGroup(product_id=p_frites.id, name="Supplément", is_required=False, allow_multiple=True, max_choices=4, display_order=3)
-    db.add(supp_frites_group)
-    db.flush()
-    for label, extra in [("Saucisse", 500), ("Œuf", 200), ("Poulet effiloché", 700), ("Olives", 300)]:
-        db.add(OptionChoice(group_id=supp_frites_group.id, label=label, extra_price=extra))
+    # ============ CRÊPES ============
+    add_product("Crêpe Farcie", "Crêpe salée généreusement farcie.", 2000, cat_crepes)
+    add_product("Crêpe Gratinée", "Crêpe salée gratinée au fromage.", 2500, cat_crepes)
+    add_product("Crêpe Pizza Poulet", "Crêpe revisitée façon pizza, garnie de poulet et fromage.", 5000, cat_crepes)
 
-    # ---- Boissons ----
-    for name, price in [("Menthe au Lait", 800), ("Ice Coffee", 1000)]:
-        db.add(Product(
-            name=name, slug=slugify(name), description=f"{name}, préparé maison.",
-            price=price, image_url=IMG_PLACEHOLDER, category_id=cat_boissons.id, is_available=True,
-        ))
+    # ============ PIZZAS ============
+    add_product("Pizza Reine", "Sauce tomate, jambon, champignon, olive.", 6500, cat_pizza, featured=True)
+    add_product("Pizza Mexicaine", "Sauce tomate, viande hachée, fromage, poivron.", 6000, cat_pizza)
+    add_product("Pizza Poulet", "Sauce tomate, poulet, fromage, poivron.", 6000, cat_pizza)
+    add_product("Margherita", "Sauce tomate, fromage, olives.", 5000, cat_pizza)
 
-    db.flush()
+    # ============ BOL DE FRITES ============
+    add_product("Bol de Frite Viande de Bœuf Fromage", "Bol de frites garni de bœuf et fromage. Accompagnement : sauce blanche.", 5000, cat_frites, featured=True)
+    add_product("Bol de Frite Poulet Fromage", "Bol de frites garni de poulet et fromage. Accompagnement : sauce blanche.", 5000, cat_frites)
+    add_product("Bol de Frite Poulet Mayo", "Bol de frites garni de poulet et mayonnaise.", 5000, cat_frites)
 
-    # ---- Promotion ----
-    db.add(Promotion(
-        title="Combo Shawarma + Boisson",
-        description="Un Shawarma Poulet accompagné d'une Menthe au Lait à prix réduit.",
-        image_url=IMG_PLACEHOLDER,
-        product_id=products_by_slug["shawarma-poulet"].id,
-        regular_price=2300,
-        promo_price=1900,
-        start_date=datetime.utcnow() - timedelta(days=1),
-        end_date=datetime.utcnow() + timedelta(days=30),
-        is_active=True,
-        is_highlighted=True,
-    ))
+    portions = add_product("Portion Frites", "Frites croustillantes, portion au choix.", 1000, cat_frites)
+    taille_frites = add_option_group(portions, "Taille", is_required=True)
+    add_choice(taille_frites, "Petite portion", 0)
+    add_choice(taille_frites, "Grande portion", 500)
 
-    # ---- Delivery zones ----
+    # ============ SALADES ============
+    add_product(
+        "Salade Niçoise",
+        "Feuille de laitue, petit pois, maïs doux, œuf, thon, oignon, tomate.",
+        3000, cat_salades,
+    )
+    add_product(
+        "Salade César",
+        "Feuille de laitue, poulet, croûtons, fromage, olive.",
+        3500, cat_salades, featured=True,
+    )
+    add_product(
+        "Salade Nova",
+        "Feuille de laitue, pomme de terre, petit pois, maïs doux, saucisson, boulette de viande, oignon, tomate.",
+        3500, cat_salades,
+    )
+    add_product(
+        "Salade Pop's",
+        "Feuille de laitue, pomme de terre, petit pois, maïs doux, poulet, œuf, thon, oignon, tomate.",
+        3500, cat_salades, featured=True,
+    )
+
+    # ============ BOISSONS & JUS ============
+    add_product("Bissap Suprême", "Jus de bissap maison, bien frais.", 1000, cat_boissons)
+    add_product("Menthe au Lait", "Boisson rafraîchissante à la menthe et au lait.", 1000, cat_boissons)
+    add_product("Ice Coffee", "Café glacé onctueux.", 1000, cat_boissons)
+
+    # ---- Zones de livraison (valeurs de départ, modifiables depuis l'admin) ----
     for name, fee in [
         ("Calavi Centre", 500),
+        ("Zoca", 500),
         ("Godomey", 700),
         ("Akassato", 800),
         ("Togba", 900),
@@ -179,17 +240,20 @@ def run():
     ]:
         db.add(DeliveryZone(name=name, fee=fee, is_active=True))
 
-    # ---- Reviews (approved demo reviews) ----
+    # ---- Avis de démonstration ----
     for name, rating, comment in [
-        ("Fabrice A.", 5, "Le meilleur shawarma de Calavi, livraison rapide !"),
-        ("Judith K.", 4, "Frites délicieuses, j'adore le fromage fondant en option."),
+        ("Fabrice A.", 5, "Le meilleur chawarma de Calavi-Zoca, livraison rapide !"),
+        ("Judith K.", 4, "Tacos généreux, j'adore la version fromage."),
         ("Steve M.", 5, "Toujours au rendez-vous, service impeccable."),
     ]:
         db.add(Review(customer_name=name, rating=rating, comment=comment, is_approved=True, is_hidden=False))
 
     db.commit()
-    print("✅ Données de démonstration créées avec succès.")
+    print("✅ Menu réel Pop's FOOD BENIN chargé avec succès.")
     print("   Admin : admin@popsfood.bj / PopsFood2026!  (à changer immédiatement)")
+    print("   ⚠️  Le prix du 'Pack Pop's 2' est une valeur provisoire (non communiquée) — à corriger dans /admin/produits.")
+    print("   ⚠️  Vérifiez le numéro de téléphone dans /admin/parametres : deux numéros différents figurent")
+    print("       sur les flyers (69 12 19 11 et 691 21 91 11) — j'ai gardé celui qui correspond au numéro de paiement.")
 
 
 if __name__ == "__main__":
