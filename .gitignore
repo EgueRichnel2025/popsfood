@@ -1,0 +1,15 @@
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/*.db
+backend/.env
+backend/uploads/*/*.jpg
+backend/uploads/*/*.jpeg
+backend/uploads/*/*.png
+backend/uploads/*/*.webp
+!backend/uploads/*/.gitkeep
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
