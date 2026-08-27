@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../../api/client";
 import { useAdminAuth } from "../../context/AdminAuthContext.jsx";
+import PasswordInput from "../../components/PasswordInput.jsx";
 
 export default function AdminAccount() {
   const { adminName } = useAdminAuth();
@@ -82,19 +83,17 @@ export default function AdminAccount() {
 
         <div className="border-t pt-4">
           <label className="text-xs text-pop-dark/50 block mb-1">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
-          <input
-            type="password"
-            placeholder="Au moins 8 caractères"
-            value={form.new_password}
-            onChange={(e) => setForm((f) => ({ ...f, new_password: e.target.value }))}
-            className="w-full border rounded-lg px-3 py-2 text-sm mb-3"
-          />
+          <div className="mb-3">
+            <PasswordInput
+              placeholder="Au moins 8 caractères"
+              value={form.new_password}
+              onChange={(e) => setForm((f) => ({ ...f, new_password: e.target.value }))}
+            />
+          </div>
           <label className="text-xs text-pop-dark/50 block mb-1">Confirmer le nouveau mot de passe</label>
-          <input
-            type="password"
+          <PasswordInput
             value={form.confirm_password}
             onChange={(e) => setForm((f) => ({ ...f, confirm_password: e.target.value }))}
-            className="w-full border rounded-lg px-3 py-2 text-sm"
           />
         </div>
 
@@ -102,12 +101,10 @@ export default function AdminAccount() {
           <label className="text-xs text-pop-dark/50 block mb-1">
             Mot de passe actuel <span className="text-pop-red">* (obligatoire pour confirmer)</span>
           </label>
-          <input
-            type="password"
+          <PasswordInput
             required
             value={form.current_password}
             onChange={(e) => setForm((f) => ({ ...f, current_password: e.target.value }))}
-            className="w-full border rounded-lg px-3 py-2 text-sm"
           />
         </div>
 

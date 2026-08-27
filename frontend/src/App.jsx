@@ -15,6 +15,8 @@ import OrderTracking from "./pages/OrderTracking.jsx";
 import Contact from "./pages/Contact.jsx";
 
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
+import AdminForgotPassword from "./pages/admin/AdminForgotPassword.jsx";
+import AdminResetPassword from "./pages/admin/AdminResetPassword.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import AdminProducts from "./pages/admin/AdminProducts.jsx";
@@ -52,6 +54,8 @@ export default function App() {
 
       {/* Admin */}
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/mot-de-passe-oublie" element={<AdminForgotPassword />} />
+      <Route path="/admin/reinitialiser-mot-de-passe" element={<AdminResetPassword />} />
       <Route
         path="/admin"
         element={

@@ -25,6 +25,15 @@ class AdminUpdateCredentials(BaseModel):
     new_password: Optional[str] = None
 
 
+class AdminForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class AdminResetPasswordConfirm(BaseModel):
+    token: str
+    new_password: str
+
+
 # ---------- Category ----------
 class CategoryBase(BaseModel):
     name: str

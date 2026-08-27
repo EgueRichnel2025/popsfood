@@ -25,6 +25,20 @@ class Admin(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class PasswordResetToken(Base):
+    """Jeton de réinitialisation de mot de passe envoyé par email.
+    On stocke un hash du jeton (jamais le jeton en clair) avec une expiration courte."""
+    __tablename__ = "password_reset_tokens"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    admin_id = Column(String, ForeignKey("admins.id"), nullable=False)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    admin = relationship("Admin")
+
+
 class Category(Base):
     __tablename__ = "categories"
     id = Column(String, primary_key=True, default=gen_uuid)

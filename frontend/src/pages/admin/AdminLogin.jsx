@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAdminAuth } from "../../context/AdminAuthContext.jsx";
+import PasswordInput from "../../components/PasswordInput.jsx";
 
 export default function AdminLogin() {
   const { login } = useAdminAuth();
@@ -41,13 +42,11 @@ export default function AdminLogin() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border border-pop-dark/10 rounded-lg px-3 py-2 text-sm"
           />
-          <input
-            type="password"
+          <PasswordInput
             required
             placeholder="Mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-pop-dark/10 rounded-lg px-3 py-2 text-sm"
           />
           {error && <p className="text-sm text-pop-red">{error}</p>}
           <button
@@ -57,6 +56,9 @@ export default function AdminLogin() {
             {loading ? "Connexion..." : "Se connecter"}
           </button>
         </form>
+        <Link to="/admin/mot-de-passe-oublie" className="block text-center text-sm text-pop-dark/40 mt-4">
+          Mot de passe oublié ?
+        </Link>
       </div>
     </div>
   );
