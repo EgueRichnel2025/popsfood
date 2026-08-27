@@ -13,6 +13,15 @@ from .routers import (
 Base.metadata.create_all(bind=engine)
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
+# Charge automatiquement le menu de démonstration au premier démarrage
+# (utile sur les plans gratuits d'hébergement sans accès Shell).
+# Sans effet si la base contient déjà des données (voir la vérification dans seed.py).
+try:
+    from . import seed as _seed
+    _seed.run()
+except Exception as e:  # ne doit jamais empêcher le serveur de démarrer
+    print(f"⚠️  Seed automatique non exécuté : {e}")
+
 app = FastAPI(
     title="Pop's FOOD BENIN API",
     description="API du site de commande en ligne Pop's FOOD BENIN (Calavi, Bénin).",
