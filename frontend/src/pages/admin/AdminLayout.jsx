@@ -11,6 +11,7 @@ const links = [
   { to: "/admin/avis", label: "⭐ Avis" },
   { to: "/admin/livraison", label: "🚚 Livraison" },
   { to: "/admin/parametres", label: "⚙️ Paramètres" },
+  { to: "/admin/mon-compte", label: "🔐 Mon compte" },
 ];
 
 export default function AdminLayout() {

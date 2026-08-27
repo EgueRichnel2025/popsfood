@@ -18,6 +18,13 @@ class Token(BaseModel):
     admin_name: str
 
 
+class AdminUpdateCredentials(BaseModel):
+    current_password: str
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    new_password: Optional[str] = None
+
+
 # ---------- Category ----------
 class CategoryBase(BaseModel):
     name: str

@@ -25,6 +25,7 @@ import AdminPromotions from "./pages/admin/AdminPromotions.jsx";
 import AdminReviews from "./pages/admin/AdminReviews.jsx";
 import AdminDelivery from "./pages/admin/AdminDelivery.jsx";
 import AdminSettings from "./pages/admin/AdminSettings.jsx";
+import AdminAccount from "./pages/admin/AdminAccount.jsx";
 
 function SiteLayout({ children }) {
   return (
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="avis" element={<AdminReviews />} />
         <Route path="livraison" element={<AdminDelivery />} />
         <Route path="parametres" element={<AdminSettings />} />
+        <Route path="mon-compte" element={<AdminAccount />} />
       </Route>
 
       <Route
