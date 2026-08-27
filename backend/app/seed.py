@@ -45,7 +45,9 @@ def run():
     db.add(admin)
 
     # ---- Settings (infos réelles transmises par le restaurant) ----
-    db.add(RestaurantSettings(
+    # merge() plutôt que add() : évite un conflit si une ligne "settings" a déjà
+    # été créée automatiquement (ex: visite du site avant l'exécution du seed).
+    db.merge(RestaurantSettings(
         id="settings",
         restaurant_name="Pop's FOOD BENIN",
         city="Calavi - Zoca, Bénin",
