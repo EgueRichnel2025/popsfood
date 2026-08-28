@@ -34,10 +34,6 @@ class AdminResetPasswordConfirm(BaseModel):
     new_password: str
 
 
-class AdminResetTestDataConfirm(BaseModel):
-    current_password: str
-
-
 # ---------- Category ----------
 class CategoryBase(BaseModel):
     name: str

@@ -68,27 +68,22 @@ export default function AdminDelivery() {
         </div>
       </form>
 
-      <div className="bg-white rounded-xl2 shadow-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-pop-cream text-left">
-            <tr><th className="p-3">Zone</th><th className="p-3">Frais</th><th className="p-3">Statut</th><th className="p-3"></th></tr>
-          </thead>
-          <tbody className="divide-y">
-            {zones.map((z) => (
-              <tr key={z.id}>
-                <td className="p-3 font-semibold">{z.name}</td>
-                <td className="p-3">{z.fee.toLocaleString("fr-FR")} F</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${z.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10"}`}>{z.is_active ? "Active" : "Inactive"}</span>
-                </td>
-                <td className="p-3 text-right space-x-2">
-                  <button onClick={() => startEdit(z)} className="text-pop-orange font-semibold">Modifier</button>
-                  <button onClick={() => handleDelete(z.id)} className="text-pop-red font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white rounded-xl2 shadow-card divide-y overflow-hidden">
+        {zones.map((z) => (
+          <div key={z.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold">{z.name}</p>
+              <p className="text-xs text-pop-dark/50">{z.fee.toLocaleString("fr-FR")} F</p>
+            </div>
+            <span className={`self-start sm:self-auto shrink-0 px-2 py-1 rounded-full text-xs ${z.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10"}`}>
+              {z.is_active ? "Active" : "Inactive"}
+            </span>
+            <div className="flex gap-4 shrink-0">
+              <button onClick={() => startEdit(z)} className="text-pop-orange font-semibold text-sm">Modifier</button>
+              <button onClick={() => handleDelete(z.id)} className="text-pop-red font-semibold text-sm">Supprimer</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

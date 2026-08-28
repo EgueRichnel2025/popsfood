@@ -10,13 +10,12 @@ from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
 from ..models import (
     Order, OrderItem, OrderStatusHistory, OrderStatus,
-    Product, OptionChoice, DeliveryZone, Admin, Review,
+    Product, OptionChoice, DeliveryZone, Admin,
 )
 from ..schemas import (
     OrderCreate, OrderOut, PaymentDecision, OrderStatusUpdate, DashboardStats,
-    AdminResetTestDataConfirm,
 )
-from ..auth import get_current_admin, verify_password
+from ..auth import get_current_admin
 from ..utils import save_upload_image
 
 router = APIRouter(prefix="/api/orders", tags=["Orders"])
@@ -263,34 +262,3 @@ def dashboard_stats(db: Session = Depends(get_db), admin: Admin = Depends(get_cu
         top_products=top_products,
         active_promotions=active_promotions,
     )
-
-
-@router.post("/admin/reset-test-data")
-def reset_test_data(
-    payload: AdminResetTestDataConfirm,
-    db: Session = Depends(get_db),
-    admin: Admin = Depends(get_current_admin),
-):
-    """Supprime TOUTES les commandes et TOUS les avis (remise à zéro avant la vente
-    du site à un client), sans toucher aux produits, catégories, promotions, zones
-    de livraison ni paramètres. Nécessite le mot de passe admin actuel pour confirmer.
-    Fonctionne directement via le serveur déployé (pas besoin d'accès direct à la
-    base de données depuis un poste local)."""
-    if not verify_password(payload.current_password, admin.hashed_password):
-        raise HTTPException(status_code=401, detail="Mot de passe incorrect.")
-
-    nb_orders = db.query(Order).count()
-    nb_reviews = db.query(Review).count()
-
-    db.query(OrderStatusHistory).delete()
-    db.query(OrderItem).delete()
-    db.query(Order).delete()
-    db.query(Review).delete()
-    db.commit()
-
-    return {
-        "ok": True,
-        "orders_deleted": nb_orders,
-        "reviews_deleted": nb_reviews,
-        "message": f"{nb_orders} commande(s) et {nb_reviews} avis supprimés. Le menu et les paramètres sont intacts.",
-    }

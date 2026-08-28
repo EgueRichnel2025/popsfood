@@ -168,43 +168,32 @@ export default function AdminProducts() {
         </div>
       </form>
 
-      <div className="bg-white rounded-xl2 shadow-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-pop-cream text-left">
-            <tr>
-              <th className="p-3">Produit</th>
-              <th className="p-3">Prix</th>
-              <th className="p-3">Statut</th>
-              <th className="p-3">Options</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {products.map((p) => (
-              <tr key={p.id}>
-                <td className="p-3 font-semibold flex items-center gap-2">
-                  {p.image_url && <img src={imageUrl(p.image_url)} className="w-8 h-8 rounded object-cover" alt="" />}
-                  {p.name}
-                </td>
-                <td className="p-3">{p.price.toLocaleString("fr-FR")} F</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${p.is_available ? "bg-green-100 text-green-700" : "bg-pop-dark/10 text-pop-dark/50"}`}>
-                    {p.is_available ? "Disponible" : "Indisponible"}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <Link to={`/admin/produits/${p.id}/options`} className="text-pop-orange font-semibold">
-                    Gérer ({p.option_groups.length})
-                  </Link>
-                </td>
-                <td className="p-3 text-right space-x-2">
-                  <button onClick={() => startEdit(p)} className="text-pop-orange font-semibold">Modifier</button>
-                  <button onClick={() => handleDelete(p.id)} className="text-pop-red font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white rounded-xl2 shadow-card divide-y overflow-hidden">
+        {products.map((p) => (
+          <div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {p.image_url && (
+                <img src={imageUrl(p.image_url)} className="w-10 h-10 rounded object-cover shrink-0" alt="" />
+              )}
+              <div className="min-w-0">
+                <p className="font-semibold truncate">{p.name}</p>
+                <p className="text-xs text-pop-dark/50">{p.price.toLocaleString("fr-FR")} F</p>
+              </div>
+            </div>
+
+            <span className={`self-start sm:self-auto shrink-0 px-2 py-1 rounded-full text-xs ${p.is_available ? "bg-green-100 text-green-700" : "bg-pop-dark/10 text-pop-dark/50"}`}>
+              {p.is_available ? "Disponible" : "Indisponible"}
+            </span>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 shrink-0">
+              <Link to={`/admin/produits/${p.id}/options`} className="text-pop-orange font-semibold text-sm">
+                Options ({p.option_groups.length})
+              </Link>
+              <button onClick={() => startEdit(p)} className="text-pop-orange font-semibold text-sm">Modifier</button>
+              <button onClick={() => handleDelete(p.id)} className="text-pop-red font-semibold text-sm">Supprimer</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

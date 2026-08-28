@@ -116,38 +116,26 @@ export default function AdminCategories() {
         </div>
       </form>
 
-      <div className="bg-white rounded-xl2 shadow-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-pop-cream text-left">
-            <tr>
-              <th className="p-3">Nom</th>
-              <th className="p-3">Slug</th>
-              <th className="p-3">Statut</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {categories.map((c) => (
-              <tr key={c.id}>
-                <td className="p-3 font-semibold">{c.name}</td>
-                <td className="p-3 text-pop-dark/50">{c.slug}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${c.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10 text-pop-dark/50"}`}>
-                    {c.is_active ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="p-3 text-right space-x-2">
-                  <button onClick={() => startEdit(c)} className="text-pop-orange font-semibold">
-                    Modifier
-                  </button>
-                  <button onClick={() => handleDelete(c.id)} className="text-pop-red font-semibold">
-                    Supprimer
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white rounded-xl2 shadow-card divide-y overflow-hidden">
+        {categories.map((c) => (
+          <div key={c.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{c.name}</p>
+              <p className="text-xs text-pop-dark/50 truncate">{c.slug}</p>
+            </div>
+            <span className={`self-start sm:self-auto shrink-0 px-2 py-1 rounded-full text-xs ${c.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10 text-pop-dark/50"}`}>
+              {c.is_active ? "Active" : "Inactive"}
+            </span>
+            <div className="flex gap-4 shrink-0">
+              <button onClick={() => startEdit(c)} className="text-pop-orange font-semibold text-sm">
+                Modifier
+              </button>
+              <button onClick={() => handleDelete(c.id)} className="text-pop-red font-semibold text-sm">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

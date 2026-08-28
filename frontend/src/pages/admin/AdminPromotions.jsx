@@ -123,28 +123,24 @@ export default function AdminPromotions() {
         </div>
       </form>
 
-      <div className="bg-white rounded-xl2 shadow-card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-pop-cream text-left">
-            <tr><th className="p-3">Titre</th><th className="p-3">Prix promo</th><th className="p-3">Période</th><th className="p-3">Statut</th><th className="p-3"></th></tr>
-          </thead>
-          <tbody className="divide-y">
-            {promos.map((p) => (
-              <tr key={p.id}>
-                <td className="p-3 font-semibold">{p.title} {p.is_highlighted && "⭐"}</td>
-                <td className="p-3">{p.promo_price.toLocaleString("fr-FR")} F</td>
-                <td className="p-3 text-xs text-pop-dark/50">{new Date(p.start_date).toLocaleDateString("fr-FR")} → {new Date(p.end_date).toLocaleDateString("fr-FR")}</td>
-                <td className="p-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${p.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10"}`}>{p.is_active ? "Active" : "Inactive"}</span>
-                </td>
-                <td className="p-3 text-right space-x-2">
-                  <button onClick={() => startEdit(p)} className="text-pop-orange font-semibold">Modifier</button>
-                  <button onClick={() => handleDelete(p.id)} className="text-pop-red font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="bg-white rounded-xl2 shadow-card divide-y overflow-hidden">
+        {promos.map((p) => (
+          <div key={p.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{p.title} {p.is_highlighted && "⭐"}</p>
+              <p className="text-xs text-pop-dark/50">
+                {p.promo_price.toLocaleString("fr-FR")} F · {new Date(p.start_date).toLocaleDateString("fr-FR")} → {new Date(p.end_date).toLocaleDateString("fr-FR")}
+              </p>
+            </div>
+            <span className={`self-start sm:self-auto shrink-0 px-2 py-1 rounded-full text-xs ${p.is_active ? "bg-green-100 text-green-700" : "bg-pop-dark/10"}`}>
+              {p.is_active ? "Active" : "Inactive"}
+            </span>
+            <div className="flex gap-4 shrink-0">
+              <button onClick={() => startEdit(p)} className="text-pop-orange font-semibold text-sm">Modifier</button>
+              <button onClick={() => handleDelete(p.id)} className="text-pop-red font-semibold text-sm">Supprimer</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
