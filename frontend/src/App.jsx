@@ -1,10 +1,10 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
-import { ProtectedAdminRoute } from "./components/Misc.jsx";
+import { ProtectedAdminRoute, Loader } from "./components/Misc.jsx";
 
 import Home from "./pages/Home.jsx";
 import Menu from "./pages/Menu.jsx";
@@ -14,20 +14,21 @@ import Payment from "./pages/Payment.jsx";
 import OrderTracking from "./pages/OrderTracking.jsx";
 import Contact from "./pages/Contact.jsx";
 
-import AdminLogin from "./pages/admin/AdminLogin.jsx";
-import AdminForgotPassword from "./pages/admin/AdminForgotPassword.jsx";
-import AdminResetPassword from "./pages/admin/AdminResetPassword.jsx";
-import AdminLayout from "./pages/admin/AdminLayout.jsx";
-import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
-import AdminProducts from "./pages/admin/AdminProducts.jsx";
-import AdminProductOptions from "./pages/admin/AdminProductOptions.jsx";
-import AdminCategories from "./pages/admin/AdminCategories.jsx";
-import AdminOrders from "./pages/admin/AdminOrders.jsx";
-import AdminPromotions from "./pages/admin/AdminPromotions.jsx";
-import AdminReviews from "./pages/admin/AdminReviews.jsx";
-import AdminDelivery from "./pages/admin/AdminDelivery.jsx";
-import AdminSettings from "./pages/admin/AdminSettings.jsx";
-import AdminAccount from "./pages/admin/AdminAccount.jsx";
+// Pages admin chargées à la demande uniquement (réduit le chargement initial du site public)
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin.jsx"));
+const AdminForgotPassword = lazy(() => import("./pages/admin/AdminForgotPassword.jsx"));
+const AdminResetPassword = lazy(() => import("./pages/admin/AdminResetPassword.jsx"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout.jsx"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.jsx"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts.jsx"));
+const AdminProductOptions = lazy(() => import("./pages/admin/AdminProductOptions.jsx"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories.jsx"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders.jsx"));
+const AdminPromotions = lazy(() => import("./pages/admin/AdminPromotions.jsx"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews.jsx"));
+const AdminDelivery = lazy(() => import("./pages/admin/AdminDelivery.jsx"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings.jsx"));
+const AdminAccount = lazy(() => import("./pages/admin/AdminAccount.jsx"));
 
 function SiteLayout({ children }) {
   return (
@@ -53,27 +54,27 @@ export default function App() {
       <Route path="/contact" element={<SiteLayout><Contact /></SiteLayout>} />
 
       {/* Admin */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/mot-de-passe-oublie" element={<AdminForgotPassword />} />
-      <Route path="/admin/reinitialiser-mot-de-passe" element={<AdminResetPassword />} />
+      <Route path="/admin/login" element={<Suspense fallback={<Loader />}><AdminLogin /></Suspense>} />
+      <Route path="/admin/mot-de-passe-oublie" element={<Suspense fallback={<Loader />}><AdminForgotPassword /></Suspense>} />
+      <Route path="/admin/reinitialiser-mot-de-passe" element={<Suspense fallback={<Loader />}><AdminResetPassword /></Suspense>} />
       <Route
         path="/admin"
         element={
           <ProtectedAdminRoute>
-            <AdminLayout />
+            <Suspense fallback={<Loader />}><AdminLayout /></Suspense>
           </ProtectedAdminRoute>
         }
       >
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="produits" element={<AdminProducts />} />
-        <Route path="produits/:productId/options" element={<AdminProductOptions />} />
-        <Route path="categories" element={<AdminCategories />} />
-        <Route path="commandes" element={<AdminOrders />} />
-        <Route path="promotions" element={<AdminPromotions />} />
-        <Route path="avis" element={<AdminReviews />} />
-        <Route path="livraison" element={<AdminDelivery />} />
-        <Route path="parametres" element={<AdminSettings />} />
-        <Route path="mon-compte" element={<AdminAccount />} />
+        <Route path="dashboard" element={<Suspense fallback={<Loader />}><AdminDashboard /></Suspense>} />
+        <Route path="produits" element={<Suspense fallback={<Loader />}><AdminProducts /></Suspense>} />
+        <Route path="produits/:productId/options" element={<Suspense fallback={<Loader />}><AdminProductOptions /></Suspense>} />
+        <Route path="categories" element={<Suspense fallback={<Loader />}><AdminCategories /></Suspense>} />
+        <Route path="commandes" element={<Suspense fallback={<Loader />}><AdminOrders /></Suspense>} />
+        <Route path="promotions" element={<Suspense fallback={<Loader />}><AdminPromotions /></Suspense>} />
+        <Route path="avis" element={<Suspense fallback={<Loader />}><AdminReviews /></Suspense>} />
+        <Route path="livraison" element={<Suspense fallback={<Loader />}><AdminDelivery /></Suspense>} />
+        <Route path="parametres" element={<Suspense fallback={<Loader />}><AdminSettings /></Suspense>} />
+        <Route path="mon-compte" element={<Suspense fallback={<Loader />}><AdminAccount /></Suspense>} />
       </Route>
 
       <Route
