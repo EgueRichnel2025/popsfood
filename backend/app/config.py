@@ -27,4 +27,10 @@ class Settings:
     SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "Pop's FOOD BENIN")
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 60
 
+    # Stockage des images (Cloudinary, gratuit) - nécessaire car le disque local de
+    # Render (plan gratuit) est effacé à chaque redéploiement.
+    CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+    CLOUDINARY_API_KEY: str = os.getenv("CLOUDINARY_API_KEY", "")
+    CLOUDINARY_API_SECRET: str = os.getenv("CLOUDINARY_API_SECRET", "")
+
 settings = Settings()

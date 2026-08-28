@@ -1,13 +1,20 @@
-import os
-import uuid
-
+import cloudinary
+import cloudinary.uploader
 from fastapi import HTTPException, UploadFile
 
 from .config import settings
 
+cloudinary.config(
+    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+    api_key=settings.CLOUDINARY_API_KEY,
+    api_secret=settings.CLOUDINARY_API_SECRET,
+    secure=True,
+)
+
 
 async def save_upload_image(file: UploadFile, subfolder: str) -> str:
-    """Validates and saves an uploaded image. Returns the public URL path."""
+    """Valide et téléverse une image vers Cloudinary (stockage permanent).
+    Retourne l'URL publique et durable de l'image."""
     if file.content_type not in settings.ALLOWED_IMAGE_TYPES:
         raise HTTPException(400, "Format non supporté. Utilisez JPG, JPEG, PNG ou WEBP.")
 
@@ -16,16 +23,15 @@ async def save_upload_image(file: UploadFile, subfolder: str) -> str:
     if len(contents) > max_bytes:
         raise HTTPException(400, f"Fichier trop volumineux (max {settings.MAX_UPLOAD_SIZE_MB} Mo).")
 
-    ext = os.path.splitext(file.filename or "")[1].lower() or ".jpg"
-    if ext not in (".jpg", ".jpeg", ".png", ".webp"):
-        ext = ".jpg"
+    if not settings.CLOUDINARY_CLOUD_NAME:
+        raise HTTPException(
+            503,
+            "Le stockage d'images n'est pas configuré sur ce serveur (variables CLOUDINARY_* manquantes).",
+        )
 
-    folder = os.path.join(settings.UPLOAD_DIR, subfolder)
-    os.makedirs(folder, exist_ok=True)
-    filename = f"{uuid.uuid4().hex}{ext}"
-    filepath = os.path.join(folder, filename)
+    try:
+        result = cloudinary.uploader.upload(contents, folder=f"popsfood/{subfolder}")
+    except Exception as e:
+        raise HTTPException(502, f"Échec de l'envoi vers le stockage d'images : {e}")
 
-    with open(filepath, "wb") as f:
-        f.write(contents)
-
-    return f"/uploads/{subfolder}/{filename}"
+    return result["secure_url"]
