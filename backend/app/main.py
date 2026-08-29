@@ -1,11 +1,13 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from .config import settings
-from .database import Base, engine
+from .database import Base, engine, get_db
 from .routers import (
     admin_auth, categories, products, orders, reviews, promotions, delivery, settings_router,
 )
@@ -49,5 +51,12 @@ app.include_router(settings_router.router)
 
 
 @app.get("/api/health")
-def health():
-    return {"status": "ok", "service": "popsfood-api"}
+def health(db: Session = Depends(get_db)):
+    """Vérifie aussi la base de données pour réveiller Neon en même temps que Render
+    quand ce endpoint est appelé régulièrement par un service de ping (cron-job.org)."""
+    db_status = "ok"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "unreachable"
+    return {"status": "ok", "service": "popsfood-api", "database": db_status}
